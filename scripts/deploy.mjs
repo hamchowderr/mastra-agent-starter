@@ -2,16 +2,20 @@
 /**
  * Build, then deploy the prebuilt output to Vercel.
  *
- * Why this is a script and not `mastra build && vercel deploy --prod`:
+ * Where the artifact actually lands:
  *
- * The Mastra Vercel deployer emits Build Output API v3 into
- * `.mastra/.vercel/output`, NOT `.vercel/output` at the project root. Running
- * `vercel deploy` from the root therefore does not see the prebuilt output — it
- * would upload the source and rebuild on Vercel, ignoring everything
- * `mastra build` produced (including maxDuration from the deployer config).
+ * The deployer builds into `.mastra/.vercel/output` and then MOVES that tree to
+ * `<repo root>/.vercel/output` — the standard Build Output API v3 location — as
+ * the last step of its bundle phase. So the repo root is correct and
+ * `.mastra/.vercel/` is left behind as an empty husk.
  *
- * So: locate the directory that CONTAINS `.vercel/output`, and run
- * `vercel deploy --prebuilt` from there.
+ * Do NOT probe `.mastra` for the output. A build killed before the move leaves a
+ * stale `.mastra/.vercel/output` that would win the search, deploying a
+ * half-built bundle. Worse, `vercel deploy --prebuilt` run from `.mastra` treats
+ * `.mastra` as the project root and links a SEPARATE Vercel project.
+ *
+ * Note the CLI's closing line points at `.mastra/output`. That path is hardcoded
+ * regardless of deployer and is not created by the Vercel deployer. Ignore it.
  */
 import { existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
@@ -32,11 +36,12 @@ if (run('npx', ['mastra', 'build'], root) !== 0) {
   console.error('\nFAIL  Build failed. Fix the errors above before deploying.');
   process.exitCode = 1;
 } else {
-  // 2. Find the directory containing .vercel/output
-  const candidates = [join(root, '.mastra'), root];
-  const outputRoot = candidates.find((d) => existsSync(join(d, '.vercel', 'output')));
+  // 2. The artifact lands at the repo root. Verify by the file that proves the
+  //    deployer actually ran, not just that a directory exists.
+  const outputRoot = root;
+  const vcConfig = join(outputRoot, '.vercel', 'output', 'functions', 'index.func', '.vc-config.json');
 
-  if (!outputRoot) {
+  if (!existsSync(vcConfig)) {
     console.error(
       [
         '',
