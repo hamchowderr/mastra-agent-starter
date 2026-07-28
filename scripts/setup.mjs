@@ -62,6 +62,15 @@ console.log(
     : 'OK  Storage: local file (file:./mastra.db) — Turso is only needed to deploy',
 );
 
+// 5. Semantic recall availability (informational, never fatal)
+const clean = envText.replace(/^#.*$/gm, '');
+const canEmbed = /^(OPENAI_API_KEY|GOOGLE_GENERATIVE_AI_API_KEY|EMBEDDING_MODEL)=.+$/m.test(clean);
+console.log(
+  canEmbed
+    ? 'OK  Semantic recall: on'
+    : 'OK  Semantic recall: off (needs an OpenAI or Google key — Anthropic has no embedding model)',
+);
+
 console.log('');
 if (failed) {
   console.error('Setup incomplete. Fix the items above, then run "npm run setup" again.');
@@ -69,3 +78,9 @@ if (failed) {
 }
 
 console.log('Setup complete. Next: run "npm run dev", then "npm run verify" in a second shell.');
+console.log('');
+console.log('To deploy later you will also need:');
+console.log('  - a Vercel account + "npx vercel login"');
+console.log('  - a Turso database (https://turso.tech) — required, Vercel cannot use a local file DB');
+console.log('  - those set in the VERCEL PROJECT env vars, not this .env');
+console.log('A Mastra Cloud account is NOT required.');

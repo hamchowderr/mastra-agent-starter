@@ -17,12 +17,42 @@ or any coding agent) at this repository and say what the agent should do.
 
 The agent handles the rest — installing, running, testing, and deploying.
 
-### What you will need
+## What you need
 
-- An **LLM API key**. [Anthropic](https://console.anthropic.com/settings/keys) is
-  the default. Your coding agent will ask for it and put it in the right place.
-- A **[Turso](https://turso.tech) database** — but only when you deploy. Running
-  locally needs nothing; it creates a database file on your machine.
+Nothing is needed up front except an LLM key. The rest only matters when you
+deploy.
+
+### To build and run locally
+
+| | Why | Cost |
+|---|---|---|
+| **An LLM API key** | The agent calls a model. [Anthropic](https://console.anthropic.com/settings/keys) is the default; [OpenAI](https://platform.openai.com/api-keys) and [Google](https://aistudio.google.com/apikey) also work. | Pay per use |
+| **Node 20.9+** | Runs the server. | Free |
+
+That is it. Storage creates a file on your machine — no database account, no
+Docker, nothing to sign up for.
+
+> **Optional:** an OpenAI or Google key also switches on *semantic recall*, where
+> the agent remembers relevant things from older conversations. Anthropic does
+> not publish an embedding model, so on an Anthropic-only setup recall stays off
+> and everything else works normally.
+
+### To deploy
+
+| | Why | Cost |
+|---|---|---|
+| **A [GitHub](https://github.com) account** | You need one anyway to copy this template. | Free |
+| **A [Vercel](https://vercel.com) account** | Where the agent runs. | Free tier is enough to start |
+| **A [Turso](https://turso.tech) database** | **Required.** Vercel does not keep files between requests, so the local database cannot be used in production. | Free tier is generous |
+
+Your coding agent will run `vercel login` and walk you through it. You approve in
+the browser once.
+
+### Not required
+
+**A [Mastra Cloud](https://mastra.ai) account is optional.** Tracing, the Studio
+UI, and evals all run locally without one. Add `MASTRA_PLATFORM_ACCESS_TOKEN` and
+`MASTRA_PROJECT_ID` later only if you want traces shipped to a hosted dashboard.
 
 ## What is in here
 
@@ -45,7 +75,9 @@ Your coding agent runs these. They are listed so you know what it is doing.
 npm install       Install dependencies
 npm run setup     Create .env, check everything is present
 npm run dev       Start the server at http://localhost:4111
+npm run chat      Talk to the agent — appears live in Studio
 npm run verify    Check the agent actually works
+npm run eval      Score the agent against test cases
 npm run deploy    Ship it to Vercel
 ```
 

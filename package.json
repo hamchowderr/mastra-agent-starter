@@ -16,7 +16,7 @@
     "verify": "node scripts/verify.mjs",
     "chat": "node scripts/chat.mjs",
     "eval": "node --env-file=.env --import tsx/esm scripts/eval.ts",
-    "deploy": "npm run build && vercel deploy --prod"
+    "deploy": "node scripts/deploy.mjs"
   },
   "dependencies": {
     "@mastra/auth": "^1.1.1",

@@ -99,14 +99,29 @@ running server (331 routes). Check there before guessing a shape.
 
 ## Deploy
 
-Turso is required. The app refuses to boot in production on a `file:` database
-because Vercel's filesystem is ephemeral and would silently discard all data.
+Ask the user for these before starting. Do not begin without them.
 
-1. Tell the user to create a database at https://turso.tech and give you the URL
-   and token.
-2. Set `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` and the LLM key in the Vercel
-   project environment.
+- **Vercel account**, and `npx vercel login` completed (browser approval, once)
+- **Turso database** from https://turso.tech — required, not optional
+- The LLM key already in `.env`
+
+A Mastra Cloud account is **not** required. Say so if asked — traces, Studio and
+evals all run locally.
+
+Steps:
+
+1. `npx vercel login` if not authenticated.
+2. Set `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` and the LLM key **in the Vercel
+   project's environment variables**. Vercel does not read `.env` — setting them
+   only locally means the deploy boots and exits.
 3. `npm run deploy`
+
+The app refuses to boot in production on a `file:` database because Vercel's
+filesystem is ephemeral and would silently discard all data.
+
+If runs time out, raise `maxDuration` on the `VercelDeployer` in
+`src/mastra/index.ts` (60 default, 300 on Pro, 800 on Enterprise). A value above
+the user's plan limit makes the deploy itself fail.
 
 ## Failure handling
 

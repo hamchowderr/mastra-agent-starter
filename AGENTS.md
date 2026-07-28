@@ -131,12 +131,38 @@ one agent go in `src/mastra/tools/`.
 
 ## Deploying
 
-Requires a Turso database. This is not optional and the app enforces it.
+### What the user must have first
 
-1. Create a database at https://turso.tech
-2. Set `TURSO_DATABASE_URL` (a `libsql://` URL) and `TURSO_AUTH_TOKEN` in the
-   Vercel project's environment variables, plus the LLM key.
-3. `npm run deploy`
+Ask for these before starting. Do not attempt the deploy without them.
+
+| Needs | Why | Get it |
+|---|---|---|
+| Vercel account | Where it runs | https://vercel.com |
+| Vercel CLI login | `vercel deploy` needs auth | run `npx vercel login` — browser approval, once |
+| Turso database | **Required.** Vercel's filesystem is ephemeral, so a `file:` DB loses all data | https://turso.tech |
+| LLM API key | Same one used locally | already in `.env` |
+
+A Mastra Cloud account is **not** required. Tracing and Studio work locally
+without one. `MASTRA_PLATFORM_ACCESS_TOKEN` + `MASTRA_PROJECT_ID` are optional
+and only add hosted trace shipping.
+
+### Steps
+
+1. `npx vercel login` if not already authenticated.
+2. Create a Turso database, get the `libsql://` URL and token.
+3. Set in the **Vercel project's** environment variables (not just local `.env`):
+   `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, and the LLM key.
+4. `npm run deploy`
+
+Env vars in `.env` are local only. Vercel does not read that file — variables
+must be set on the Vercel project or the deploy boots and immediately exits.
+
+### Function timeout
+
+`src/mastra/index.ts` sets `maxDuration: 60` on the deployer. That is the safe
+value for every Vercel plan including Hobby. Agents making several tool calls can
+exceed it. Raise to 300 (Pro) or 800 (Enterprise) if runs time out — but a value
+above the plan limit makes the **deploy** fail, not just the request.
 
 If you deploy with a `file:` database the process exits at boot with an
 explanation. That is deliberate — Vercel's filesystem is ephemeral and a file

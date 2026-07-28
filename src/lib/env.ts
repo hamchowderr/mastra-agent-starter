@@ -40,6 +40,12 @@ const envSchema = z
 
     MASTRA_TELEMETRY_DISABLED: z.string().optional(),
 
+    // Hosted Mastra Observe — entirely OPTIONAL. Local traces work without an
+    // account. Set BOTH to also ship traces to the platform; the exporter is a
+    // no-op unless both are present.
+    MASTRA_PLATFORM_ACCESS_TOKEN: z.string().optional(),
+    MASTRA_PROJECT_ID: z.string().optional(),
+
     // Set automatically by Vercel. Used to detect a deployed environment.
     VERCEL: z.string().optional(),
   })
