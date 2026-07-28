@@ -87,10 +87,15 @@ POST /api/agents/<id>/generate
   { "messages":[{"role":"user","content":"..."}],
     "memory":{"thread":"demo-thread","resource":"demo-user"} }
 
-POST /api/workflows/<id>/create-run        -> { "runId": "..." }
-POST /api/workflows/<id>/start-async
-  { "runId":"...", "inputData":{ "text":"..." } }
+# runId is a QUERY PARAM on start-async, not a body field. In the body it is
+# silently ignored and a different run executes, orphaning the created one.
+POST /api/workflows/<id>/create-run                 -> { "runId": "..." }
+POST /api/workflows/<id>/start-async?runId=<runId>
+  { "inputData":{ "text":"..." } }
 ```
+
+The full route set and every request schema is at `/api/openapi.json` on the
+running server (331 routes). Check there before guessing a shape.
 
 ## Deploy
 

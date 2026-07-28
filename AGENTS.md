@@ -73,11 +73,16 @@ POST /api/agents/<agentId>/generate
   { "messages": [{"role":"user","content":"..."}],
     "memory": { "thread": "demo-thread", "resource": "demo-user" } }
 
-# Workflows are TWO calls, not one:
-POST /api/workflows/<workflowId>/create-run          -> { "runId": "..." }
-POST /api/workflows/<workflowId>/start-async
-  { "runId": "...", "inputData": { "text": "..." } }
+# Workflows are TWO calls, not one.
+# runId is a QUERY PARAMETER on start-async, never a body field.
+POST /api/workflows/<workflowId>/create-run           -> { "runId": "..." }
+POST /api/workflows/<workflowId>/start-async?runId=<runId>
+  { "inputData": { "text": "..." } }
 ```
+
+Putting `runId` in the start-async body is silently ignored: the call creates and
+runs a *different* run, leaving the one from `create-run` orphaned. Verified
+against `/api/openapi.json` — `runId` is declared as a query param.
 
 After any change, run something through it so the user sees the result in Studio
 rather than taking your word for it.

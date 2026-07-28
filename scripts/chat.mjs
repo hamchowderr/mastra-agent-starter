@@ -82,10 +82,13 @@ async function runWorkflow(id, text) {
   }
   console.log(`run ${runId}`);
 
-  const started = await post(`/api/workflows/${id}/start-async`, {
-    runId,
-    inputData: { text },
-  });
+  // runId is a QUERY parameter here, not a body field. Putting it in the body
+  // is silently ignored, and start-async then executes a different, freshly
+  // created run — orphaning the one create-run just made.
+  const started = await post(
+    `/api/workflows/${id}/start-async?runId=${encodeURIComponent(runId)}`,
+    { inputData: { text } },
+  );
 
   const result = started.json;
   if (result?.status === 'failed') {
