@@ -64,7 +64,14 @@ async function run() {
     res = await fetchWithTimeout(`${BASE}/api/agents/leadIntake/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] }),
+      // memory.thread + memory.resource make this run persist and appear as a
+      // conversation in Mastra Studio, so the user can watch verification happen
+      // instead of taking the exit code on faith. Without them it is a stateless
+      // one-off and nothing shows in the UI.
+      body: JSON.stringify({
+        messages: [{ role: 'user', content: prompt }],
+        memory: { thread: 'verify', resource: 'verify-user' },
+      }),
     });
   } catch (err) {
     fail(

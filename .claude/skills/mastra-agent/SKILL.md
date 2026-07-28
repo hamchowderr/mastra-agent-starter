@@ -59,7 +59,38 @@ npm run verify     # exits non-zero on failure
 `npm run verify` tests the example agent. After adding your own, extend
 `scripts/verify.mjs` with a case for it so future changes stay checked.
 
-Mastra Studio is at http://localhost:4111 for the user to click around in.
+## Show the user, do not just report
+
+The user watches **Mastra Studio at http://localhost:4111**. They do not type into
+it — you drive, they observe. After any change, run something through the agent so
+they see it happen.
+
+```
+npm run chat -- "Some realistic input"
+npm run chat -- "Some raw lead text" --workflow leadTriage
+```
+
+Two rules, both non-negotiable:
+
+- **Drive through the running server over HTTP.** Never write a standalone script
+  that builds its own `Mastra` instance. It appears nowhere in Studio, and libSQL
+  permits only one process on the database — a second Mastra process throws lock
+  errors.
+- **Always pass `memory.thread` and `memory.resource`.** Without them the call is
+  a stateless one-off, and no conversation appears in the UI. `npm run chat` does
+  this for you.
+
+Raw shapes if needed:
+
+```
+POST /api/agents/<id>/generate
+  { "messages":[{"role":"user","content":"..."}],
+    "memory":{"thread":"demo-thread","resource":"demo-user"} }
+
+POST /api/workflows/<id>/create-run        -> { "runId": "..." }
+POST /api/workflows/<id>/start-async
+  { "runId":"...", "inputData":{ "text":"..." } }
+```
 
 ## Deploy
 
@@ -81,6 +112,8 @@ because Vercel's filesystem is ephemeral and would silently discard all data.
 | Agent returns text wrapped around JSON | Instructions too soft | Add the explicit no-preamble rules above |
 | Agent missing from MCP but works over REST | Registered once | Add it to `MCPServer` in `index.ts` |
 | Bundler error: symbol `server` already declared | Renamed `serverConfig` | Rename it back to `serverConfig` |
+| Nothing appears in Studio | Called without `memory` | Pass `memory.thread` + `memory.resource`, or use `npm run chat` |
+| libSQL "database is locked" | A second Mastra process | Kill it. Drive the already-running server over HTTP instead |
 | Deploy boots then loses data | `file:` database in production | Set the Turso variables in Vercel |
 
 When `verify` fails, read the `npm run dev` output before editing code. The real

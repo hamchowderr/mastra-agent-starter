@@ -20,6 +20,8 @@ Every action is an npm script. Do not invent commands.
 | `npm run setup` | Create `.env`, check Node + keys | After install |
 | `npm run dev` | Start the server on `:4111` (Studio included) | To run it |
 | `npm run verify` | Prove the agent works. Exits non-zero on failure | After any change |
+| `npm run chat -- "msg"` | Talk to the agent through the running server, visible in Studio | To show the user it works |
+| `npm run eval` | Score agent output against the dataset. Costs tokens | Before shipping a prompt change |
 | `npm run typecheck` | TypeScript check, no emit | After editing `.ts` |
 | `npm run build` | Production build | Before deploy |
 | `npm run deploy` | Build + `vercel deploy --prod` | To ship |
@@ -39,6 +41,46 @@ npm run setup
 supply an API key — ask the user for one and write it into `.env`.
 
 Storage needs nothing locally. It uses `file:./mastra.db`, created on first run.
+
+## Driving the agent so the user can watch
+
+The user watches **Mastra Studio at http://localhost:4111**. They do not type into
+it. You drive the agent; they observe.
+
+Two rules make that work:
+
+**1. Always drive through the running server over HTTP.** Never write a standalone
+script that constructs its own `Mastra` instance. A second process shows up
+nowhere in Studio, and libSQL allows only one process to hold the database — a
+second Mastra process causes lock errors.
+
+**2. Always pass `memory.thread` and `memory.resource`.** Without them the call is
+a stateless one-off: it returns a result but creates no conversation, so the user
+sees nothing in the UI.
+
+```bash
+npm run chat -- "Message here"
+npm run chat -- "Message here" --thread demo-2 --resource alice
+npm run chat -- "Some raw lead text" --workflow leadTriage
+```
+
+`npm run chat` handles both rules for you. Prefer it over raw curl.
+
+The raw shapes, if you need them:
+
+```
+POST /api/agents/<agentId>/generate
+  { "messages": [{"role":"user","content":"..."}],
+    "memory": { "thread": "demo-thread", "resource": "demo-user" } }
+
+# Workflows are TWO calls, not one:
+POST /api/workflows/<workflowId>/create-run          -> { "runId": "..." }
+POST /api/workflows/<workflowId>/start-async
+  { "runId": "...", "inputData": { "text": "..." } }
+```
+
+After any change, run something through it so the user sees the result in Studio
+rather than taking your word for it.
 
 ## Layout
 
