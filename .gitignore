@@ -1,0 +1,15 @@
+output.txt
+node_modules
+dist
+.mastra
+.env
+.env.*
+!.env.example
+mastra.duckdb*
+*.db
+*.db-*
+.vercel
+
+# .claude/ IS committed — it ships the mastra-agent skill.
+# Only local, per-machine overrides are ignored.
+.claude/settings.local.json
