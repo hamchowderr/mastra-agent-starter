@@ -124,9 +124,11 @@ for (const evalCase of dataset.cases) {
         promptAlignmentScorer.run({ input: scoringInput as any, output: scoringOutput as any }),
         urgencyScorer.run({ input: scoringInput as any, output: scoringOutput as any }),
       ]);
-      scores.hallucination = hallResult.score;
-      scores.promptAlignment = alignResult.score;
-      scores.urgency = urgResult.score;
+      // `score` is absent when a scorer step returns notScorable(); record
+      // that as null so it is skipped like any other run without scorer data.
+      scores.hallucination = hallResult.score ?? null;
+      scores.promptAlignment = alignResult.score ?? null;
+      scores.urgency = urgResult.score ?? null;
     } catch (err) {
       // Scorer errors don't fail the case — log and continue
       console.error(yellow(`\n    ⚠ scorer error: ${err}`));
