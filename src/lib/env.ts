@@ -35,7 +35,7 @@ const envSchema = z
     // token signed with this secret. Leave unset for open local dev.
     MASTRA_JWT_SECRET: z
       .string()
-      .min(32, 'must be at least 32 chars — generate one with: openssl rand -hex 32')
+      .min(32, { error: 'must be at least 32 chars — generate one with: openssl rand -hex 32' })
       .optional(),
 
     MASTRA_TELEMETRY_DISABLED: z.string().optional(),
@@ -52,7 +52,7 @@ const envSchema = z
   .refine(
     (e) => Boolean(e.ANTHROPIC_API_KEY || e.OPENAI_API_KEY || e.GOOGLE_GENERATIVE_AI_API_KEY),
     {
-      message:
+      error:
         'No LLM provider key found. Set ANTHROPIC_API_KEY (recommended), OPENAI_API_KEY, or GOOGLE_GENERATIVE_AI_API_KEY in .env — get an Anthropic key at https://console.anthropic.com/settings/keys',
     },
   );
@@ -61,10 +61,11 @@ const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
   console.error('Invalid environment configuration:\n');
-  for (const [key, errors] of Object.entries(parsed.error.flatten().fieldErrors)) {
+  const { fieldErrors, formErrors } = z.flattenError(parsed.error);
+  for (const [key, errors] of Object.entries(fieldErrors)) {
     console.error(`  ${key}: ${(errors as string[]).join(', ')}`);
   }
-  for (const err of parsed.error.flatten().formErrors) {
+  for (const err of formErrors) {
     console.error(`  ${err}`);
   }
   console.error('\nFix: copy .env.example to .env and fill in the values it describes.');
