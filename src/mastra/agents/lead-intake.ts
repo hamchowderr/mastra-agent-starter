@@ -63,7 +63,7 @@ const validateEmail = createTool({
   }),
   execute: async ({ email }) => {
     if (!email) return { valid: false, normalized: null, reason: 'No email provided' };
-    const result = z.string().email().safeParse(email.trim().toLowerCase());
+    const result = z.email({ error: 'Invalid email' }).safeParse(email.trim().toLowerCase());
     if (!result.success) {
       return {
         valid: false,
