@@ -53,7 +53,14 @@ const mcpServer = new MCPServer({
  * top-level `server` binding and the bundler errors on the collision.
  */
 const serverConfig = env.MASTRA_JWT_SECRET
-  ? { auth: new MastraJwtAuth({ secret: env.MASTRA_JWT_SECRET }) }
+  ? {
+      auth: new MastraJwtAuth({ secret: env.MASTRA_JWT_SECRET }),
+      // Core 1.83 serves Mastra's built-in MCP server at /api/mcp in production
+      // whenever `server.auth` is set, with every toolset by default. memory and
+      // observability would expose every user's threads and traces, so serve
+      // only agents and workflows.
+      mcp: { toolsets: ['agents', 'workflows'] as ('agents' | 'workflows')[] },
+    }
   : undefined;
 
 export const mastra = new Mastra({
